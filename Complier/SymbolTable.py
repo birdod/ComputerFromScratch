@@ -11,6 +11,7 @@ class SymbolTable():
         self.field = 0
         self.infcnt = 0
         self.whilecnt = 0
+        
     def startSubroutine(self):
         self.local = {}
         self.arg = 0

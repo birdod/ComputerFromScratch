@@ -70,6 +70,10 @@ class CompilationEngine():
             self.writer.writePop("pointer", "0")
         elif routinekind == "method":
             self.writer.writePush("argument", "0")
+            self.table.Define("self", "slef","arg")
+            for element in self.table.local.keys():
+                if self.table.local[element]["kind"]=='arg':
+                    self.table.local[element]["#"] += 1
             self.writer.writePop("pointer", "0")
         self.compileStatements()
         self.token.advance() # '}'
@@ -149,7 +153,6 @@ class CompilationEngine():
                 nArgs += 1
             else:
                 classname = name
-
             
             self.token.advance() #'.'
             self.token.advance()
@@ -157,7 +160,7 @@ class CompilationEngine():
             self.token.advance()
         self.token.advance() # ')' | expressionList
         if self.token.symbol() != ')':
-            nArgs = self.compileExpressionList()
+            nArgs += self.compileExpressionList()
             self.token.advance()
         if classname == None:
             classname = self.classname
@@ -229,25 +232,28 @@ class CompilationEngine():
         self.token.advance()
         self.compileExpression()
         self.writer.WriteIf(f"IF_TRUE{nowcnt}")
-        self.writer.WriteGoto(f"IF_TRUEEND{nowcnt}")
+        self.writer.WriteGoto(f"IF_FALSE{nowcnt}")
         self.token.advance()
         self.token.advance()
         self.token.advance()
         self.writer.WriteLabel(f"IF_TRUE{nowcnt}")
         self.compileStatements()
-        self.writer.WriteGoto(f"IF_END{nowcnt}")
-        self.writer.WriteLabel(f"IF_TRUEEND{nowcnt}")
         self.token.advance()
         self.token.advance()
         if self.token.keyword() == 'else':
+            self.writer.WriteGoto(f"IF_END{nowcnt}")
             self.token.advance()
             self.token.advance()
             self.writer.WriteLabel(f"IF_FALSE{nowcnt}")
             self.compileStatements()
             self.token.advance()
             self.token.advance()
-        self.token.deadvance()
-        self.writer.WriteLabel(f"IF_END{nowcnt}")
+            self.token.deadvance()
+            self.writer.WriteLabel(f"IF_END{nowcnt}")
+        else:
+            self.token.deadvance()
+            self.writer.WriteLabel(f"IF_FALSE{nowcnt}")
+
         return
     def compileExpression(self):
         self.compileTerm()
@@ -262,6 +268,8 @@ class CompilationEngine():
         return
 
     def compileTerm(self):
+        cnt = 0
+
         if self.token.tokenType() == type.INT_CONST:
             self.writer.writePush("constant", f"{self.token.intVal()}")
         elif self.token.tokenType() == type.KEYWORD:
@@ -276,6 +284,7 @@ class CompilationEngine():
         #TODO
         elif self.token.tokenType() == type.STRING_CONST:
             string = self.token.stringVal()
+            # print(len(string) + 1)
             self.writer.writePush("constant", f"{len(string)+1}")
             self.writer.writeCall("String", "new", "1")
             for element in string:
@@ -322,12 +331,15 @@ class CompilationEngine():
                 else:
                     self.token.deadvance()
                     className = self.token.identifier()
+                    if self.table.KindOf(className):
+                        self.writer.writePush(kindmap[self.table.KindOf(className)], self.table.IndexOf(className))
+                        className = self.table.TypeOf(className)
+                        cnt += 1
                     self.token.advance()
                     self.token.advance()
                     subroutineName = self.token.identifier()
                     self.token.advance()
                 self.token.advance()
-                cnt = 0
                 if self.token.symbol() != ')':
                     cnt = self.compileExpressionList()
                     self.token.advance()
