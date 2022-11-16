@@ -4,7 +4,7 @@ from utill import pre, lexical, type
 
 class JackTokenizer():
     def __init__(self, data):
-        self.data = pre(data)
+        self.data, _  = pre(data)
         self.now = None
         self.i = 0
     

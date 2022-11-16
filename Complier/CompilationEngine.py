@@ -1,13 +1,14 @@
 from JackTokenizer import JackTokenizer
 from VMWriter import VMWriter
 from SymbolTable import SymbolTable
-from utill import lexical, type, kindmap, opmap, uopmap
+from utill import lexical, type, kindmap, opmap, uopmap, pre
 
 class CompilationEngine():
     def __init__(self, filepath, data, static):
         self.writer = VMWriter(filepath)
         self.token = JackTokenizer(data)
         self.table = SymbolTable(static)
+        _, self.functiontable = pre(data)
         self.token.advance()
         self.CompileClass()
         self.classname = None
@@ -47,6 +48,7 @@ class CompilationEngine():
     def CompileSubroutine(self):
         routinekind = self.token.keyword()
         self.token.advance() # rettype
+        rettype = self.token.keyword()
         self.token.advance() # subroutineName
         routinename = self.token.identifier()
         nlocals = 0
@@ -125,12 +127,18 @@ class CompilationEngine():
     def compileDo(self):
         # do
         classname = None
+        nArgs = 0
+
         self.token.advance() # subroutineName | (className | varName)
         self.token.advance()
         if self.token.symbol() == '(':
             self.token.deadvance()
             subroutineName = self.token.keyword()
             self.token.advance()
+            if self.functiontable[subroutineName] == "method":
+                nArgs += 1
+                self.writer.writePush("pointer", "0")
+    
         else:
             self.token.deadvance()
             name = self.token.keyword()
@@ -138,14 +146,16 @@ class CompilationEngine():
                 location = kindmap[self.table.KindOf(name)]
                 self.writer.writePush(location, self.table.IndexOf(name))
                 classname = self.table.TypeOf(name)
+                nArgs += 1
             else:
                 classname = name
+
+            
             self.token.advance() #'.'
             self.token.advance()
             subroutineName = self.token.keyword()
             self.token.advance()
         self.token.advance() # ')' | expressionList
-        nArgs = 0
         if self.token.symbol() != ')':
             nArgs = self.compileExpressionList()
             self.token.advance()
@@ -219,13 +229,14 @@ class CompilationEngine():
         self.token.advance()
         self.compileExpression()
         self.writer.WriteIf(f"IF_TRUE{nowcnt}")
-        self.writer.WriteGoto(f"IF_FALSE{nowcnt}")
+        self.writer.WriteGoto(f"IF_TRUEEND{nowcnt}")
         self.token.advance()
         self.token.advance()
         self.token.advance()
         self.writer.WriteLabel(f"IF_TRUE{nowcnt}")
         self.compileStatements()
         self.writer.WriteGoto(f"IF_END{nowcnt}")
+        self.writer.WriteLabel(f"IF_TRUEEND{nowcnt}")
         self.token.advance()
         self.token.advance()
         if self.token.keyword() == 'else':
@@ -256,6 +267,8 @@ class CompilationEngine():
         elif self.token.tokenType() == type.KEYWORD:
             if self.token.keyword() in ["false", "null"]:
                 self.writer.writePush("constant", "0")
+            elif self.token.keyword() == "this":
+                self.writer.writePush("pointer", "0")
             else:
                 self.writer.writePush("constant", "0")
                 self.writer.WriteArithmetic("not")

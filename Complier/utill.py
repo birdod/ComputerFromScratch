@@ -27,7 +27,13 @@ def pre(data):
     for element in tokens:
         if element != "":
             ret.append(element)
-    return ret
+    
+    functiontable = {}
+    for i, element in enumerate(ret):
+        if element in ["constructor", "function", "method"]:
+            functiontable[ret[i+2]] = element
+
+    return ret, functiontable
 
 def comment_handle(data):
 
@@ -38,7 +44,7 @@ def comment_handle(data):
             lines[j] = ''
             continue
         for i, element in enumerate(line):
-            if element=='/' and line[i+1] == '/':
+            if element=='/' and (len(line)==i+1 or line[i+1] in ['/','*']):
                 if i==0:
                     lines[j] = ''
                     break

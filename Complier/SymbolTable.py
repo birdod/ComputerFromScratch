@@ -4,6 +4,7 @@ class SymbolTable():
     def __init__(self, static):
         self.general = {}
         self.local = {}
+        self.method = {}
         self.arg = 0
         self.var = 0
         self.static = static
@@ -16,6 +17,7 @@ class SymbolTable():
         self.var = 0
         self.infcnt = 0
         self.whilecnt = 0
+    
     def Define(self, name, type, kind):
         if kind == "static":
             self.general[name] = {"type":type, "kind": kind, "#": self.static}
