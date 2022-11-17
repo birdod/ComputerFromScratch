@@ -1,25 +1,35 @@
 class Math {
-    static Array twoToThe;
+    static int twoToThe;
 
-    function void init(){
-        var int i;
-        let i = 0;
+    function void init() {
+        let twoToThe = Array.new(16);
         let twoToThe[0] = 1;
-        while (i < 16){
-            let i = i + 1;
-            let twoToThe[i] = twoToThe[i-1] * 2;
-        }
-        return ;
+        let twoToThe[1] = 2;
+        let twoToThe[2] = 4;
+        let twoToThe[3] = 8;
+        let twoToThe[4] = 16;
+        let twoToThe[5] = 32;
+        let twoToThe[6] = 64;
+        let twoToThe[7] = 128;
+        let twoToThe[8] = 256;
+        let twoToThe[9] = 512;
+        let twoToThe[10] = 1024;
+        let twoToThe[11] = 2048;
+        let twoToThe[12] = 4096;
+        let twoToThe[13] = 8192;
+        let twoToThe[14] = 16384;
+        let twoToThe[15] = 16384+16384;
+        return;
     }
-    function int bit(int x, int b){
-        return (x & twoToThe[b]) > 0
+    function boolean bit(int x, int b){
+        return ~((x & twoToThe[b]) = 0);
     }
     function int abs(int x){
-        if (x>=0){
+        if (~(x<0)){
             return x;
         }
         else {
-            return -x;
+            return (-x) ;
         }
     }
     function int multiply(int x, int y){
@@ -27,8 +37,8 @@ class Math {
         let i = 0;
         let shiftedX = x;
         while (i < 16){
-            if (bit(y,i)){
-                let sum = sum + shiftedX
+            if (Math.bit(y,i)){
+                let sum = sum + shiftedX;
             }
             let i = i + 1;
             let shiftedX = shiftedX + shiftedX;
@@ -41,15 +51,15 @@ class Math {
         let negx = x < 0;
         let negy = y < 0;
         if (x<0) {
-            let x = abs(x);
+            let x = Math.abs(x);
         }
         if (y<0){
-            let y = abs(y);
+            let y = Math.abs(y);
         }
         if (x<y) {
             return 0;
         }
-        let q = divide(x, y + y);
+        let q = Math.divide(x, y + y);
         if (x - (q + q) * y < y){
             let ret = (q + q);
         }
@@ -84,10 +94,12 @@ class Math {
 
     function int sqrt(int x) {
         var int i, y, t;
-        let i = 15;
-        while (~(i = 0)){
+        let i = 7;
+        while (~(i < 0)){
+            
             let t = (twoToThe[i] + y) * (twoToThe[i] + y);
-            if (~(t> x) and (t>0)) {
+
+            if (~(t>x) & (t>0)) {
                 let y = y + twoToThe[i];
             }
             let i = i-1;
